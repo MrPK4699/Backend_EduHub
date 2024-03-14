@@ -1,4 +1,6 @@
+require('dotenv').config();
+
 module.exports ={
-    MongoUrl: "mongodb+srv://4699pankajkhatri:MongoDB4699@cluster0.y9qkfu5.mongodb.net/EduHub",
-    jwtSecret : "EduHub123"
+    MongoUrl: process.env.MONGODB_URI,
+    jwtSecret : process.env.JWT_SECRET
 }
