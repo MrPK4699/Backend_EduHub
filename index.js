@@ -13,7 +13,9 @@ const errorHandlers=require('./utils/errorHandlers')
 const authenticateToken= require('./Middlewares/authmiddleware')
 
 const app= express();
-// console.log(MongoUrl)
+console.log(MongoUrl)
+console.log(process.env.MONGODB_URI);
+
 mongoose.connect(MongoUrl,  { useNewUrlParser: true, useUnifiedTopology: true })
 .then(()=>{
     console.log('Mongodb is connected');
