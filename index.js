@@ -1,42 +1,51 @@
+// index.js
+
 const express = require('express');
+const { ApolloServer } = require('apollo-server-express');
+const typeDefs = require('./graphql/schema');
+const resolvers = require('./graphql/resolvers');
+// const connectDB = require('./db');
+const authMiddleware = require('./middlewares/authMiddleware');
+
+const app = express();
+
 const mongoose = require('mongoose');
-const {MongoUrl} = require('./config/config');
-const cors= require('cors');
+const { MongoUrl } = require('./config/config');
 
-const registerRoutes=require('./Routes/registerRoutes')
-const loginRoutes=require('./Routes/loginRoutes')
-const discussionRoutes=require('./Routes/discussionRoutes')
-const courseRoutes=require('./Routes/courseRoutes')
-const lectureRoutes=require('./Routes/lectureRoutes')
-const errorHandlers=require('./utils/errorHandlers')
+const connectDB = async () => {
+  try {
+    await mongoose.connect(MongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('MongoDB connection failed:', error);
+  }
+};
 
-const authenticateToken= require('./Middlewares/authmiddleware')
+// Connect to MongoDB
+connectDB();
 
-const app= express();
+// Apply authentication middleware
+app.use(authMiddleware);
 
-mongoose.connect(MongoUrl,  { useNewUrlParser: true, useUnifiedTopology: true })
-.then(()=>{
-    console.log('Mongodb is connected');
-})
-.catch(err=>{console.log(`connection failed : ${err}`)});
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ req }) => {
+    // Get the user from the request object if available
+    const user = req.user || null;
+    return { user };
+  },
+});
 
-app.use(express.json());
-app.use(cors({origin: 'http://localhost:3000'}));
+const startServer = async () => {
+  await server.start();
+  server.applyMiddleware({ app });
 
-app.get('/', (req,res)=>{
-    res.json({'msg':'All is Well' })
-})
+  const PORT = process.env.PORT || 3000;
 
-app.use('/auth', authenticateToken);
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}${server.graphqlPath}`);
+  });
+};
 
-app.use('/register', registerRoutes);
-app.use('/login', loginRoutes);
-app.use('/auth/course' ,courseRoutes);
-app.use('/auth/lecture' ,lectureRoutes);
-app.use('/auth/discussion', discussionRoutes);
-
-app.use(errorHandlers);
-
-app.listen(5000, ()=>{
-    console.log('Server is running on port 5000');
-})
+startServer();
