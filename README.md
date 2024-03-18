@@ -1,4 +1,4 @@
-# Idea Clan Backend
+# Backend_Idea_clan 
 
 This is the backend for the Idea Clan application, which provides a GraphQL API for managing books and users, as well as implementing authentication features.
 
